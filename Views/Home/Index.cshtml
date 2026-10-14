@@ -1,0 +1,78 @@
+@model IEnumerable<Shop.Models.Product>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Магазин товаров для сада</title>
+    <style>
+        table { border-collapse: collapse; }
+        td, th { border: 1px solid #ccc; padding: 8px; }
+        .out-of-stock { color: #999; }
+        .total { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Магазин товаров для сада</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена за штуку</th>
+                <th>Купить, шт.</th>
+                <th>Итого</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model)
+        {
+            <tr class="@(p.Quantity == 0 ? "out-of-stock" : "")">
+                <td>@p.Name</td>
+                <td>@p.Quantity</td>
+                <td class="price" data-price="@p.Price">@p.Price</td>
+                <td>
+                    @if (p.Quantity > 0)
+                    {
+                        <form method="post" asp-action="Buy" style="display:inline">
+                            <input type="hidden" name="productId" value="@p.ID" />
+                            <input type="number" name="count" value="1"
+                                   min="1" max="@p.Quantity"
+                                   class="count-input"
+                                   data-price="@p.Price"
+                                   style="width:60px" />
+                            <input type="submit" value="Купить" />
+                        </form>
+                    }
+                    else
+                    {
+                        <span>Нет в наличии</span>
+                    }
+                </td>
+                <td class="total" data-price="@p.Price">@p.Price</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <script>
+        // Пересчитываем "Итого" при изменении количества
+        document.querySelectorAll('.count-input').forEach(function (input) {
+            input.addEventListener('input', function () {
+                var price = parseInt(this.dataset.price, 10);
+                var count = parseInt(this.value, 10);
+                if (isNaN(count) || count < 1) count = 0;
+
+                var row = this.closest('tr');
+                var totalCell = row.querySelector('.total');
+                totalCell.textContent = price * count;
+            });
+        });
+    </script>
+</body>
+</html>
